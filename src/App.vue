@@ -1,28 +1,28 @@
 <template>
-  <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
-  </div>
+    <v-app :style="{background: $vuetify.theme.themes[theme].background}">
+        <v-main>
+            <h1>Main Contents</h1>
+        </v-main>
+
+        <GlobalNotificationModal />
+    </v-app>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import GlobalNotificationModal from "@/components/GlobalNotificationModal";
 
 export default {
-  name: 'App',
-  components: {
-    HelloWorld
-  }
-}
+    name: 'App',
+    components: {
+        GlobalNotificationModal,
+    },
+    created() {
+        this.$store.dispatch('init');
+    },
+    computed:{
+        theme(){
+            return (this.$vuetify.theme.dark) ? 'dark' : 'light'
+        }
+    }
+};
 </script>
-
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
-</style>
