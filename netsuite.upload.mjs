@@ -252,10 +252,30 @@ async function injectImportStatements(fileContent) {
             fileContent = replaceBetween(fileContent, $import.startIndex, $import.endIndex,
                 `const ${$import.importClause.default} = ${JSON.stringify(moduleContents[$import.importClause.default])}`);
         else if ($import.importClause.named.length) {
-            let replacement = '';
+            let originalImport = fileContent.substring($import.startIndex, $import.endIndex);
+            let replacement = `\r\n// ${originalImport}\r\n`;
 
-            for (let item of $import.importClause.named)
-                replacement += `const ${item.binding} = ${JSON.stringify(moduleContents[item.specifier])}\r\n`;
+            for (let item of $import.importClause.named) {
+                let funcArr = [];
+
+                // First we let stringify() replace the functions with their toString()
+                let content = JSON.stringify(moduleContents[item.specifier] || moduleContents['default'], function(key, value) {
+                    if (typeof value === 'function') {
+                        let txt = value.toString()
+                            .replace(`${key}()`, '()=>') // replace function name with arrow function
+                            .replace(/(\s+)\s+/g, '') // trim all white space characters that aren't alone
+                            .replace(/(\r\n|\r|\n)/g, '') // trim all new line characters
+                        funcArr.push(txt);
+                        return txt;
+                    }
+                    else return value;
+                });
+
+                // Then we replace the double quotes around the functions to make them usable
+                for (let item of funcArr) content = content.replace('"' + item + '"', item)
+
+                replacement += `const ${item.binding} = ${content}`;
+            }
 
             fileContent = replaceBetween(fileContent, $import.startIndex, $import.endIndex, replacement);
         }
@@ -287,7 +307,6 @@ function replaceBetween(original, start, end, what) {
             console.log('Uploading file ' + filePath + ' to NetSuite cabinet...');
             if (hasNetSuiteError('ERROR uploading file.', err, res)) return;
 
-            // let relativeFileName = getRelativePath(filePath);
             console.info('Upload successful!');
         });
     } else console.log('File does not exist', filePath);
