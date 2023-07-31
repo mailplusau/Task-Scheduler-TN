@@ -264,7 +264,7 @@ async function injectImportStatements(fileContent) {
                         let txt = value.toString()
                             .replace(`${key}()`, '()=>') // replace function name with arrow function
                             .replace(/(\s+)\s+/g, '') // trim all white space characters that aren't alone
-                            .replace(/(\r\n|\r|\n)/g, '') // trim all new line characters
+                            .replace(/(\r\n|\r|\n)/g, ''); // trim all new line characters
                         funcArr.push(txt);
                         return txt;
                     }
@@ -272,7 +272,8 @@ async function injectImportStatements(fileContent) {
                 });
 
                 // Then we replace the double quotes around the functions to make them usable
-                for (let item of funcArr) content = content.replace('"' + item + '"', item)
+
+                for (let item of funcArr) content = content.replace(`${JSON.stringify(item)}`, item);
 
                 replacement += `const ${item.binding} = ${content}`;
             }
@@ -280,7 +281,7 @@ async function injectImportStatements(fileContent) {
             fileContent = replaceBetween(fileContent, $import.startIndex, $import.endIndex, replacement);
         }
 
-    } while (importStatements.length > 0)
+    } while (importStatements.length > 0);
 
     return fileContent;
 }
