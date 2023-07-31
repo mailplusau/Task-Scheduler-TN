@@ -39,7 +39,7 @@ define(['N/ui/serverWidget', 'N/render', 'N/search', 'N/file', 'N/log', 'N/recor
             });
         }
 
-    }
+    };
 
     return {onRequest};
 });
@@ -89,9 +89,9 @@ function _handleGETRequests(request, response) {
 
         if (!operation) throw 'No operation specified.';
 
-        if (!getOperations[operation]) throw `Operation [${operation}] is not supported.`;
-
-        getOperations[operation](response, requestParams);
+        if (operation === 'getIframeContents') _getIframeContents(response);
+        else if (!getOperations[operation]) throw `Operation [${operation}] is not supported.`;
+        else getOperations[operation](response, requestParams);
     } catch (e) {
         log.debug({title: "_handleGETRequests", details: `error: ${e}`});
         _writeResponseJson(response, {error: `${e}`})
@@ -122,16 +122,17 @@ function _writeResponseJson(response, body) {
     });
 }
 
-const getOperations = {
-    'getIframeContents' : function (response) { // DO NOT REMOVE. This GET function is essential to load the Vue app
-        let {file} = NS_MODULES;
+function _getIframeContents(response) {
+    let {file} = NS_MODULES;
+    const htmlFileData = _getHtmlTemplate(htmlTemplateFile);
+    const htmlFile = file.load({ id: htmlFileData[htmlTemplateFile].id });
 
-        const htmlFileData = _getHtmlTemplate(htmlTemplateFile);
-        const htmlFile = file.load({ id: htmlFileData[htmlTemplateFile].id });
-
-        _writeResponseJson(response, htmlFile.getContents());
-    },
+    _writeResponseJson(response, htmlFile.getContents());
 }
+
+const getOperations = {
+
+};
 
 const postOperations = {
 
