@@ -3,12 +3,12 @@ import App from './App.vue'
 import store from './store'
 import vuetify from './plugins/vuetify'
 
-Vue.config.productionTip = false
+Vue.config.productionTip = false;
 
-if (parent['setMPTheme']) parent.setMPTheme('Mass SMS Sender - NetSuite Australia (Mail Plus Pty Ltd)')
+if (parent['setMPTheme']) parent.setMPTheme('Task Scheduler - NetSuite Australia (Mail Plus Pty Ltd)');
 
 new Vue({
   store,
   vuetify,
   render: h => h(App)
-}).$mount('#app')
+}).$mount('#app');
