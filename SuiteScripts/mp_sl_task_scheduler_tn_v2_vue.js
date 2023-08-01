@@ -7,6 +7,7 @@
  */
 
 import {VARS} from '@/utils/utils.mjs';
+import {scheduler} from '@/utils/scheduler.mjs';
 
 // This should be the same file as the one built by webpack. Make sure this matches the filename in package.json
 let htmlTemplateFile = 'mp_cl_task_scheduler_tn_v2_vue.html';
@@ -90,7 +91,7 @@ function _handleGETRequests(request, response) {
         if (!operation) throw 'No operation specified.';
 
         if (operation === 'getIframeContents') _getIframeContents(response);
-        else if (!getOperations[operation]) throw `Operation [${operation}] is not supported.`;
+        else if (!getOperations[operation]) throw `GET operation [${operation}] is not supported.`;
         else getOperations[operation](response, requestParams);
     } catch (e) {
         log.debug({title: "_handleGETRequests", details: `error: ${e}`});
@@ -107,7 +108,8 @@ function _handlePOSTRequests({operation, requestParams}, response) {
         if (!operation) throw 'No operation specified.';
 
         // _writeResponseJson(response, {source: '_handlePOSTRequests', operation, requestParams});
-        postOperations[operation](response, requestParams);
+        if (!postOperations[operation]) throw `POST operation [${operation}] is not supported.`;
+        else postOperations[operation](response, requestParams);
     } catch (e) {
         log.debug({title: "_handlePOSTRequests", details: `error: ${e}`});
         _writeResponseJson(response, {error: `${e}`})
@@ -135,5 +137,42 @@ const getOperations = {
 };
 
 const postOperations = {
+    'scheduleSingleTask' : function (response, {scheduledTime, employeeId, scriptId, deploymentId, taskType, taskParameters}) {
+        let {record} = NS_MODULES;
 
+        if (!VARS.TASK_TYPE[taskType])
+            return _writeResponseJson(response, {error: `Task type [${taskType}] not supported.`});
+
+        let taskRecord = record.create({type: 'customrecord_scheduled_task'});
+        taskRecord.setValue({fieldId: 'name', value: 'Scheduled Task'});
+        taskRecord.setValue({fieldId: 'custrecord_scheduled_time', value: new Date(scheduledTime)});
+        taskRecord.setValue({fieldId: 'custrecord_task_initiator', value: employeeId});
+        taskRecord.setValue({fieldId: 'custrecord_script_id', value: scriptId});
+        taskRecord.setValue({fieldId: 'custrecord_deployment_id', value: deploymentId});
+        taskRecord.setValue({fieldId: 'custrecord_task_type', value: taskType});
+        taskRecord.setValue({fieldId: 'custrecord_task_status', value: VARS.TASK_STATUS.SCHEDULED});
+        taskRecord.setValue({fieldId: 'custrecord_task_parameters', value: JSON.stringify(taskParameters)});
+        let taskRecordId = taskRecord.save();
+
+        _writeResponseJson(response, `Scheduled Task Created with ID: ${taskRecordId}`);
+    },
+    'dispatchSingleTask' : function (response, {employeeId, scriptId, deploymentId, taskType, taskParameters}) {
+        if (!VARS.TASK_TYPE[taskType])
+            return _writeResponseJson(response, {error: `Task type [${taskType}] not supported.`});
+
+        let taskRecord = NS_MODULES.record.create({type: 'customrecord_scheduled_task'});
+        taskRecord.setValue({fieldId: 'name', value: 'Scheduled Task'});
+        taskRecord.setValue({fieldId: 'custrecord_task_initiator', value: employeeId});
+        taskRecord.setValue({fieldId: 'custrecord_script_id', value: scriptId});
+        taskRecord.setValue({fieldId: 'custrecord_deployment_id', value: deploymentId});
+        taskRecord.setValue({fieldId: 'custrecord_task_type', value: taskType});
+        taskRecord.setValue({fieldId: 'custrecord_task_status', value: VARS.TASK_STATUS.STARTING});
+        taskRecord.setValue({fieldId: 'custrecord_task_parameters', value: JSON.stringify(taskParameters)});
+        let taskRecordId = taskRecord.save();
+
+        scheduler.dispatchTask(NS_MODULES,
+            {taskRecordId, taskType, scriptId, deploymentId});
+
+        _writeResponseJson(response, `Dispatched task ID ${taskRecordId}`);
+    }
 };
