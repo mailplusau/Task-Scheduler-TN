@@ -166,7 +166,7 @@ const postOperations = {
         taskRecord.setValue({fieldId: 'custrecord_script_id', value: scriptId});
         taskRecord.setValue({fieldId: 'custrecord_deployment_id', value: deploymentId});
         taskRecord.setValue({fieldId: 'custrecord_task_type', value: taskType});
-        taskRecord.setValue({fieldId: 'custrecord_task_status', value: VARS.TASK_STATUS.STARTING});
+        taskRecord.setValue({fieldId: 'custrecord_task_status', value: VARS.TASK_STATUS.QUEUED});
         taskRecord.setValue({fieldId: 'custrecord_task_parameters', value: JSON.stringify(taskParameters)});
         let taskRecordId = taskRecord.save();
 

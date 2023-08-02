@@ -45,7 +45,7 @@ define(moduleNames.map(item => 'N/' + item), (...args) => {
         });
 
         try {
-            taskRecord.setValue({fieldId: 'custrecord_task_status', value: VARS.TASK_STATUS.STARTING});
+            taskRecord.setValue({fieldId: 'custrecord_task_status', value: VARS.TASK_STATUS.QUEUED});
 
             scheduler.dispatchTask(NS_MODULES, {
                 taskRecordId: taskRecord.getValue({fieldId: 'id'}),
@@ -62,12 +62,12 @@ define(moduleNames.map(item => 'N/' + item), (...args) => {
 
     function summarize(context) {
         let taskCount = 0;
-        context.output.iterator().each((key, value) => {
+        context.output.iterator().each(() => {
             taskCount++;
             return true;
         });
 
-        NS_MODULES.log.debug({title: "Report", details: `Number of tasks ran this period: ${taskCount}`});
+        NS_MODULES.log.debug({title: "Report", details: `Number of tasks dispatched this period: ${taskCount}`});
     }
 
     return {
