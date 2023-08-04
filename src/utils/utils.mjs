@@ -5,6 +5,7 @@ const TASK_STATUS = {
     INDEXING: 'indexing',
     SENDING: 'sending',
     COMPLETED: 'completed',
+    CANCELLED: 'cancelled',
     ERROR: 'error',
 };
 

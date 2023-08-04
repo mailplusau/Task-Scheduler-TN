@@ -174,5 +174,20 @@ const postOperations = {
             {taskRecordId, taskType, scriptId, deploymentId});
 
         _writeResponseJson(response, `Dispatched task ID ${taskRecordId}`);
+    },
+    'cancelSingleTask' : function (response, {taskId}) {
+        try {
+            let taskRecord = NS_MODULES.record.load({type: 'customrecord_scheduled_task', id: taskId});
+            let taskStatus = taskRecord.getValue({fieldId: 'custrecord_task_status'});
+
+            if ([VARS.TASK_STATUS.QUEUED, VARS.TASK_STATUS.SCHEDULED].includes(taskStatus)) {
+                taskRecord.setValue({fieldId: 'custrecord_task_status', value: VARS.TASK_STATUS.CANCELLED});
+                let taskRecordId = taskRecord.save();
+
+                _writeResponseJson(response, `Task Record with ID ${taskRecordId} has been cancelled.`);
+            } else _writeResponseJson(response, {error: `Could not cancel Task Record with ID ${taskId}.`});
+        } catch (e) {
+            _writeResponseJson(response, {error: `Could find Task Record with ID ${taskId}. ${e}`});
+        }
     }
 };
