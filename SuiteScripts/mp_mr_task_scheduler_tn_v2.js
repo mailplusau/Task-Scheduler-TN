@@ -39,10 +39,8 @@ define(moduleNames.map(item => 'N/' + item), (...args) => {
     function reduce(context) { // TODO: Add logic for multi-deployment script
         NS_MODULES.log.debug({title: "reduce()", details: `${context.values}`});
         let result = JSON.parse(context.values);
-        let taskRecord = NS_MODULES.record.load({
-            type: 'customrecord_scheduled_task',
-            id: result.values['internalid']?.value || result.values['internalid']
-        });
+        let taskRecordId = result.values['internalid']?.value || result.values['internalid'];
+        let taskRecord = NS_MODULES.record.load({type: 'customrecord_scheduled_task', id: taskRecordId});
 
         try {
             taskRecord.setValue({fieldId: 'custrecord_task_status', value: VARS.TASK_STATUS.QUEUED});
@@ -56,7 +54,7 @@ define(moduleNames.map(item => 'N/' + item), (...args) => {
 
             taskRecord.save();
 
-            context.write({key: context.key, value: taskRecord.getValue({fieldId: 'id'})});
+            context.write({key: context.key, value: taskRecordId});
         } catch (e) { NS_MODULES.log.error({title: "reduce()", details: `${e}`}); }
     }
 
